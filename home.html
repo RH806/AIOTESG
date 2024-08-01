@@ -1,0 +1,248 @@
+<html><head><base href="https://generalassemb.ly/" target="_blank"><script src="https://cdn.jsdelivr.net/npm/streamlit-component-lib@1.4.0/dist/streamlit-component-lib.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script><script src="https://cdn.plot.ly/plotly-latest.min.js"></script><style>
+    body {
+        font-family: 'Helvetica Neue', Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #ffffff;
+        color: #1a1a1a;
+        line-height: 1.6;
+    }
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+    header {
+        background-color: #1a1a1a;
+        color: #ffffff;
+        padding: 20px 0;
+    }
+    .header-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .logo {
+        font-size: 24px;
+        font-weight: bold;
+    }
+    nav a {
+        color: #ffffff;
+        text-decoration: none;
+        margin-left: 20px;
+        font-weight: 500;
+    }
+    h1, h2 {
+        color: #1a1a1a;
+        font-weight: 700;
+    }
+    h1 {
+        font-size: 2.5em;
+        margin-bottom: 30px;
+    }
+    h2 {
+        font-size: 1.8em;
+        margin-top: 40px;
+        margin-bottom: 20px;
+    }
+    #scatter-plot {
+        width: 100%;
+        height: 500px;
+        background-color: #f8f8f8;
+        border-radius: 5px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .results {
+        margin-top: 30px;
+        padding: 20px;
+        background-color: #f8f8f8;
+        border-radius: 5px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .metric {
+        display: inline-block;
+        width: 30%;
+        text-align: center;
+        margin: 10px;
+    }
+    .metric-value {
+        font-size: 2em;
+        font-weight: bold;
+        color: #1a1a1a;
+    }
+    .metric-label {
+        font-size: 0.9em;
+        color: #6c6c6c;
+    }
+    ol {
+        padding-left: 20px;
+    }
+    li {
+        margin-bottom: 10px;
+    }
+    strong {
+        color: #1a1a1a;
+    }
+    .btn {
+        display: inline-block;
+        background-color: #1a1a1a;
+        color: #ffffff;
+        padding: 10px 20px;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: 500;
+        transition: background-color 0.3s ease;
+    }
+    .btn:hover {
+        background-color: #333333;
+    }
+</style></head><body>
+<header>
+    <div class="header-content">
+        <div class="logo">Linear Regression Analysis</div>
+        <nav>
+            <a href="#model">Model</a>
+            <a href="#evaluation">Evaluation</a>
+            <a href="#analysis">Analysis</a>
+        </nav>
+    </div>
+</header>
+<div class="container">
+    <h1>Discover the Power of Linear Regression</h1>
+    <div id="scatter-plot"></div>
+    <div class="results" id="evaluation">
+        <h2>Model Evaluation</h2>
+        <div class="metric">
+            <div class="metric-value" id="mse"></div>
+            <div class="metric-label">Mean Squared Error</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value" id="rmse"></div>
+            <div class="metric-label">Root Mean Squared Error</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value" id="r2"></div>
+            <div class="metric-label">R-squared</div>
+        </div>
+    </div>
+    <h2 id="analysis">CRISP-DM Analysis</h2>
+    <ol>
+        <li><strong>Business Understanding:</strong> We aim to understand the relationship between x and y variables and predict y based on x.</li>
+        <li><strong>Data Understanding:</strong> We have 200 randomly generated data points with a linear relationship and some noise.</li>
+        <li><strong>Data Preparation:</strong> Data is generated with a known formula and noise is added to simulate real-world scenarios.</li>
+        <li><strong>Modeling:</strong> We use linear regression to model the relationship between x and y.</li>
+        <li><strong>Evaluation:</strong> We evaluate the model using MSE, RMSE, and R2 metrics.</li>
+        <li><strong>Deployment:</strong> The model is visualized and results are displayed on this web page.</li>
+    </ol>
+    <a href="#" class="btn">Learn More About Linear Regression</a>
+</div>
+
+<script>
+// Generate random data
+function generateData() {
+    const data = [];
+    for (let i = 0; i < 200; i++) {
+        const x = Math.random() * 200 - 100;
+        const y = 10 * x + 50 + 50 * (Math.random() + Math.random() + Math.random() - 1.5);
+        data.push({x, y});
+    }
+    return data;
+}
+
+// Perform linear regression
+function linearRegression(data) {
+    const n = data.length;
+    let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+    for (const point of data) {
+        sumX += point.x;
+        sumY += point.y;
+        sumXY += point.x * point.y;
+        sumX2 += point.x * point.x;
+    }
+    const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+    const intercept = (sumY - slope * sumX) / n;
+    return {slope, intercept};
+}
+
+// Calculate evaluation metrics
+function calculateMetrics(data, slope, intercept) {
+    let sumSquaredError = 0;
+    let sumSquaredTotal = 0;
+    const yMean = data.reduce((sum, point) => sum + point.y, 0) / data.length;
+
+    for (const point of data) {
+        const yPred = slope * point.x + intercept;
+        sumSquaredError += Math.pow(point.y - yPred, 2);
+        sumSquaredTotal += Math.pow(point.y - yMean, 2);
+    }
+
+    const mse = sumSquaredError / data.length;
+    const rmse = Math.sqrt(mse);
+    const r2 = 1 - (sumSquaredError / sumSquaredTotal);
+
+    return {mse, rmse, r2};
+}
+
+// Main function
+function main() {
+    const data = generateData();
+    const {slope, intercept} = linearRegression(data);
+    const {mse, rmse, r2} = calculateMetrics(data, slope, intercept);
+
+    // Update results
+    document.getElementById('mse').textContent = mse.toFixed(2);
+    document.getElementById('rmse').textContent = rmse.toFixed(2);
+    document.getElementById('r2').textContent = r2.toFixed(2);
+
+    // Create scatter plot
+    const trace1 = {
+        x: data.map(point => point.x),
+        y: data.map(point => point.y),
+        mode: 'markers',
+        type: 'scatter',
+        name: 'Data Points',
+        marker: {color: '#1a1a1a'}
+    };
+
+    const trace2 = {
+        x: [-100, 100],
+        y: [-100 * slope + intercept, 100 * slope + intercept],
+        mode: 'lines',
+        type: 'scatter',
+        name: 'Regression Line',
+        line: {color: '#ff0000'}
+    };
+
+    const layout = {
+        title: 'Scatter Plot with Regression Line',
+        paper_bgcolor: '#f8f8f8',
+        plot_bgcolor: '#f8f8f8',
+        font: {
+            color: '#1a1a1a'
+        },
+        xaxis: {
+            title: 'X',
+            gridcolor: '#e0e0e0',
+            zerolinecolor: '#e0e0e0'
+        },
+        yaxis: {
+            title: 'Y',
+            gridcolor: '#e0e0e0',
+            zerolinecolor: '#e0e0e0'
+        },
+        legend: {
+            bgcolor: '#f8f8f8',
+            bordercolor: '#e0e0e0'
+        }
+    };
+
+    Plotly.newPlot('scatter-plot', [trace1, trace2], layout);
+}
+
+// Run the main function when the page loads
+window.onload = main;
+</script>
+</body></html>
